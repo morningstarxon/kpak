@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Kpak Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f7f5ef;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .app-container {
+            width: 1400px;
+            max-width: 98vw;
+            height: 90vh;
+            background: #ffffff;
+            border: 2px solid #d4af37;
+            border-radius: 28px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.05), 0 0 0 1px rgba(212, 175, 55, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-bar {
+            background: #fffcf5;
+            border-bottom: 1px solid #e9dfb0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px 0 12px;
+        }
+
+        .tab {
+            background: #fef9e6;
+            border: 1px solid #e5d68a;
+            border-bottom: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #7a6300;
+            border-radius: 16px 16px 0 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.1s linear;
+            margin-right: 2px;
+            font-family: monospace;
+        }
+
+        .tab.active {
+            background: #ffffff;
+            border-color: #d4af37;
+            border-bottom: 2px solid white;
+            color: #b8860b;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .tab:hover:not(.active) {
+            background: #fff3cf;
+            border-color: #d4af37;
+        }
+
+        .close-tab {
+            font-size: 18px;
+            line-height: 1;
+            font-weight: 400;
+            color: #bb9922;
+            cursor: pointer;
+            padding: 0 4px;
+            border-radius: 20px;
+        }
+
+        .close-tab:hover {
+            color: #c23b22;
+            background: #ffe1cf;
+        }
+
+        .tab-badge {
+            font-size: 10px;
+            background: #e5d68a;
+            padding: 2px 6px;
+            border-radius: 20px;
+            color: #5a4700;
+        }
+
+        .new-tab-btn {
+            background: transparent;
+            border: 1px solid #d4af37;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #b37b2e;
+            cursor: pointer;
+            margin-left: auto;
+            font-family: monospace;
+        }
+
+        .new-tab-btn:hover {
+            background: #d4af37;
+            color: white;
+        }
+
+        .editor-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fffef8;
+            overflow: auto;
+            padding: 16px;
+        }
+
+        .text-editor-area {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .text-header {
+            background: #fef7e0;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #a47c23;
+            border-bottom: 1px solid #eadfa0;
+        }
+
+        .text-editor {
+            flex: 1;
+            width: 100%;
+            border: 1px solid #eadfa0;
+            resize: none;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 18px;
+            background: #fffcf5;
+            color: #2c2412;
+            outline: none;
+            border-radius: 12px;
+        }
+
+        .whiteboard-area {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .board-toolbar {
+            background: #fef7e0;
+            padding: 8px 12px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eadfa0;
+            align-items: center;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .tool-btn {
+            background: white;
+            border: 1px solid #d4af37;
+            border-radius: 28px;
+            padding: 5px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #7a5a1a;
+            font-family: monospace;
+        }
+
+        .tool-btn.active-tool {
+            background: #d4af37;
+            color: white;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            background: #fffef5;
+            overflow: auto;
+            cursor: crosshair;
+            border: 1px solid #eadfa0;
+            border-radius: 0 0 12px 12px;
+        }
+
+        canvas {
+            display: block;
+            background: #ffffff;
+            cursor: crosshair;
+        }
+
+        .html-area {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .html-editor-row {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .html-code-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .html-preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-left: 2px solid #ebdfa6;
+            padding-left: 12px;
+        }
+
+        .html-textarea {
+            flex: 1;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            padding: 12px;
+            border: 1px solid #eadfa0;
+            border-radius: 12px;
+            background: #fffcf5;
+            resize: none;
+            outline: none;
+        }
+
+        .preview-frame {
+            flex: 1;
+            border: 1px solid #d4af37;
+            border-radius: 12px;
+            background: white;
+            width: 100%;
+        }
+
+        .run-btn {
+            background: #d4af37;
+            border: none;
+            border-radius: 28px;
+            padding: 6px 16px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 8px;
+            align-self: flex-start;
+        }
+
+        .run-btn:hover {
+            background: #b8860b;
+        }
+
+        .status-bar {
+            background: #fef7e0;
+            border-top: 1px solid #eadfa0;
+            padding: 6px 16px;
+            font-size: 11px;
+            color: #b68b30;
+            display: flex;
+            justify-content: space-between;
+            font-family: monospace;
+        }
+
+        .chat-link-btn {
+            background: #d4af37;
+            border: none;
+            border-radius: 28px;
+            padding: 4px 16px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 11px;
+            transition: 0.1s;
+        }
+
+        .chat-link-btn:hover {
+            background: #b8860b;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border: 3px solid #d4af37;
+            border-radius: 28px;
+            padding: 28px 32px;
+            width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+        }
+
+        .modal h3 {
+            color: #b37b2e;
+            margin-bottom: 20px;
+        }
+
+        .type-option {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin: 24px 0;
+        }
+
+        .type-card {
+            border: 2px solid #e5d68a;
+            border-radius: 20px;
+            padding: 12px 20px;
+            cursor: pointer;
+            background: #fef9e6;
+            transition: all 0.1s;
+        }
+
+        .type-card.selected {
+            border-color: #d4af37;
+            background: #fff3cf;
+            box-shadow: 0 0 0 2px #f3e5b0;
+        }
+
+        .modal button {
+            background: #d4af37;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container" id="appRoot">
+    <div class="tab-bar" id="tabBar"></div>
+    <div class="editor-pane" id="editorPane"></div>
+    <div class="status-bar">
+        <span>✏️ Kpak Editor</span>
+        <div id="statusRight"></div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        let tabs = [];
+        let activeTabId = null;
+        const STORAGE_KEY = 'kpak_editor_data';
+        const VISIT_KEY = 'kpak_chat_visited';
+
+        function uid() {
+            return Date.now() + '-' + Math.random().toString(36).substring(2, 8);
+        }
+
+        function createTab(type, customName = null) {
+            let name = customName || (type === 'text' ? 'Text' : type === 'html' ? 'HTML' : 'Canvas');
+            let baseContent = '';
+            if(type === 'text') baseContent = 'Welcome';
+            if(type === 'html') baseContent = '<h1 style="color:#b8860b;">Welcome</h1>\n<p>Kpak Editor ready.</p>';
+            if(type === 'whiteboard') baseContent = null;
+
+            return {
+                id: uid(),
+                name: name,
+                type: type,
+                textContent: baseContent,
+                drawingData: null,
+                canvasWidth: 800,
+                canvasHeight: 500
+            };
+        }
+
+        function loadState() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if(stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if(Array.isArray(parsed) && parsed.length > 0) {
+                        tabs = parsed;
+                        for(let t of tabs) {
+                            if(!t.type) t.type = 'text';
+                            if(t.drawingData === undefined) t.drawingData = null;
+                            if(!t.canvasWidth) t.canvasWidth = 800;
+                            if(!t.canvasHeight) t.canvasHeight = 500;
+                            if(t.textContent === undefined) t.textContent = '';
+                        }
+                        activeTabId = tabs[0].id;
+                        return;
+                    }
+                } catch(e) {}
+            }
+            const welcomeTab = createTab('text', 'Welcome');
+            welcomeTab.textContent = 'Welcome';
+            tabs = [welcomeTab];
+            activeTabId = welcomeTab.id;
+        }
+
+        function persistState() {
+            const toStore = tabs.map(tab => ({
+                id: tab.id,
+                name: tab.name,
+                type: tab.type,
+                textContent: tab.textContent,
+                drawingData: tab.drawingData,
+                canvasWidth: tab.canvasWidth,
+                canvasHeight: tab.canvasHeight
+            }));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+            const msgEl = document.getElementById('statusMsg');
+            if(msgEl) msgEl.innerText = 'saved';
+            setTimeout(() => { if(msgEl) msgEl.innerText = 'ready'; }, 800);
+        }
+
+        function getCurrentTab() {
+            return tabs.find(t => t.id === activeTabId) || null;
+        }
+
+        function updateCurrentTabText(newText) {
+            const tab = getCurrentTab();
+            if(tab && (tab.type === 'text' || tab.type === 'html')) {
+                tab.textContent = newText;
+                persistState();
+                if(tab.type === 'html') {
+                    refreshHtmlPreview(tab.id);
+                }
+            }
+        }
+
+        function updateDrawing(dataURL, width, height) {
+            const tab = getCurrentTab();
+            if(tab && tab.type === 'whiteboard') {
+                tab.drawingData = dataURL;
+                tab.canvasWidth = width;
+                tab.canvasHeight = height;
+                persistState();
+            }
+        }
+
+        let activeDrawingCtx = null;
+        let activeCanvasElem = null;
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+        let activeTool = 'brush';
+        let strokeColor = '#000000';
+        let brushSize = 3;
+
+        function setDrawingTool(tool) {
+            activeTool = tool;
+            const btns = document.querySelectorAll('.tool-btn');
+            btns.forEach(btn => {
+                if(btn.getAttribute('data-tool') === tool) btn.classList.add('active-tool');
+                else btn.classList.remove('active-tool');
+            });
+        }
+
+        function initCanvasEvents(canvas) {
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            activeDrawingCtx = ctx;
+            activeCanvasElem = canvas;
+
+            function getCoords(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                let clientX, clientY;
+                if(e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                    e.preventDefault();
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                let x = (clientX - rect.left) * scaleX;
+                let y = (clientY - rect.top) * scaleY;
+                x = Math.max(0, Math.min(canvas.width, x));
+                y = Math.max(0, Math.min(canvas.height, y));
+                return { x, y };
+            }
+
+            function drawLine(x0,y0,x1,y1) {
+                if(!activeDrawingCtx) return;
+                activeDrawingCtx.beginPath();
+                activeDrawingCtx.moveTo(x0,y0);
+                activeDrawingCtx.lineTo(x1,y1);
+                activeDrawingCtx.strokeStyle = strokeColor;
+                activeDrawingCtx.lineWidth = brushSize;
+                activeDrawingCtx.lineCap = 'round';
+                activeDrawingCtx.stroke();
+            }
+
+            function drawDot(x,y) {
+                if(!activeDrawingCtx) return;
+                activeDrawingCtx.beginPath();
+                activeDrawingCtx.arc(x, y, brushSize/2, 0, Math.PI*2);
+                activeDrawingCtx.fillStyle = strokeColor;
+                activeDrawingCtx.fill();
+            }
+
+            function onStart(e) {
+                e.preventDefault();
+                isDrawing = true;
+                const { x, y } = getCoords(e);
+                lastX = x; lastY = y;
+                if(activeTool === 'eraser') {
+                    activeDrawingCtx.globalCompositeOperation = 'destination-out';
+                    activeDrawingCtx.beginPath();
+                    activeDrawingCtx.arc(x, y, brushSize, 0, Math.PI*2);
+                    activeDrawingCtx.fill();
+                    activeDrawingCtx.globalCompositeOperation = 'source-over';
+                } else if(activeTool === 'brush') {
+                    drawDot(x,y);
+                }
+            }
+
+            function onMove(e) {
+                if(!isDrawing) return;
+                e.preventDefault();
+                const { x, y } = getCoords(e);
+                if(activeTool === 'eraser') {
+                    activeDrawingCtx.globalCompositeOperation = 'destination-out';
+                    activeDrawingCtx.beginPath();
+                    activeDrawingCtx.moveTo(lastX, lastY);
+                    activeDrawingCtx.lineTo(x, y);
+                    activeDrawingCtx.lineWidth = brushSize * 1.2;
+                    activeDrawingCtx.stroke();
+                    activeDrawingCtx.globalCompositeOperation = 'source-over';
+                } else if(activeTool === 'brush') {
+                    drawLine(lastX, lastY, x, y);
+                }
+                lastX = x; lastY = y;
+            }
+
+            function onEnd() {
+                isDrawing = false;
+                if(activeCanvasElem) {
+                    const dataURL = activeCanvasElem.toDataURL();
+                    const tab = getCurrentTab();
+                    if(tab && tab.type === 'whiteboard') {
+                        tab.drawingData = dataURL;
+                        persistState();
+                    }
+                }
+            }
+
+            canvas.addEventListener('mousedown', onStart);
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onEnd);
+            canvas.addEventListener('touchstart', onStart, {passive:false});
+            canvas.addEventListener('touchmove', onMove, {passive:false});
+            canvas.addEventListener('touchend', onEnd);
+        }
+
+        function loadWhiteboardCanvas(tab, canvasEl) {
+            if(!canvasEl) return;
+            const w = tab.canvasWidth || 800;
+            const h = tab.canvasHeight || 500;
+            canvasEl.width = w;
+            canvasEl.height = h;
+            canvasEl.style.width = '100%';
+            canvasEl.style.height = 'auto';
+            const ctx = canvasEl.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0,0,w,h);
+            if(tab.drawingData) {
+                const img = new Image();
+                img.onload = () => ctx.drawImage(img, 0, 0, w, h);
+                img.src = tab.drawingData;
+            } else {
+                ctx.fillStyle = '#d4af37';
+                ctx.font = '14px monospace';
+                ctx.fillText("✏️ draw here", 20, 40);
+            }
+            initCanvasEvents(canvasEl);
+        }
+
+        function clearWhiteboard() {
+            if(activeDrawingCtx && activeCanvasElem) {
+                activeDrawingCtx.clearRect(0,0,activeCanvasElem.width, activeCanvasElem.height);
+                activeDrawingCtx.fillStyle = '#FFFFFF';
+                activeDrawingCtx.fillRect(0,0,activeCanvasElem.width, activeCanvasElem.height);
+                const tab = getCurrentTab();
+                if(tab && tab.type === 'whiteboard') {
+                    tab.drawingData = activeCanvasElem.toDataURL();
+                    persistState();
+                }
+            }
+        }
+
+        function exportWhiteboard() {
+            if(activeCanvasElem) {
+                const link = document.createElement('a');
+                link.download = `kpak_drawing.png`;
+                link.href = activeCanvasElem.toDataURL();
+                link.click();
+            }
+        }
+
+        function refreshHtmlPreview(tabId) {
+            const tab = tabs.find(t => t.id === tabId);
+            if(!tab || tab.type !== 'html') return;
+            const previewFrame = document.getElementById(`preview-${tab.id}`);
+            if(previewFrame) {
+                const doc = previewFrame.contentWindow.document;
+                doc.open();
+                doc.write(tab.textContent || '<!-- empty -->');
+                doc.close();
+            }
+        }
+
+        function runHtmlInNewTab(tabId) {
+            const tab = tabs.find(t => t.id === tabId);
+            if(tab && tab.type === 'html') {
+                const newWin = window.open();
+                newWin.document.write(tab.textContent || '<h1>Empty</h1>');
+                newWin.document.close();
+            }
+        }
+
+        function updateChatButton() {
+            const container = document.getElementById('statusRight');
+            if(!container) return;
+            const hasVisited = localStorage.getItem(VISIT_KEY);
+            if(hasVisited === 'true') {
+                container.innerHTML = '';
+                return;
+            }
+            const btn = document.createElement('button');
+            btn.innerText = '💬 Visit Kpak Chat';
+            btn.className = 'chat-link-btn';
+            btn.onclick = () => {
+                window.open('https://msentimental-kpak.hf.space', '_blank');
+                localStorage.setItem(VISIT_KEY, 'true');
+                btn.remove();
+            };
+            container.innerHTML = '';
+            container.appendChild(btn);
+        }
+
+        function renderUI() {
+            const tabBarDiv = document.getElementById('tabBar');
+            const editorPane = document.getElementById('editorPane');
+            if(!tabBarDiv || !editorPane) return;
+
+            tabBarDiv.innerHTML = '';
+            tabs.forEach(tab => {
+                const tabEl = document.createElement('div');
+                tabEl.className = `tab ${activeTabId === tab.id ? 'active' : ''}`;
+                const typeLabel = tab.type === 'text' ? '📄' : (tab.type === 'html' ? '🌐' : '🎨');
+                const spanName = document.createElement('span');
+                spanName.innerHTML = `${typeLabel} ${tab.name}`;
+                const closeSpan = document.createElement('span');
+                closeSpan.innerText = '✕';
+                closeSpan.className = 'close-tab';
+                closeSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    if(tabs.length === 1) {
+                        alert("Keep at least one tab.");
+                        return;
+                    }
+                    const idx = tabs.findIndex(t => t.id === tab.id);
+                    if(idx !== -1) {
+                        tabs.splice(idx,1);
+                        if(activeTabId === tab.id) activeTabId = tabs[0]?.id || null;
+                        persistState();
+                        renderUI();
+                    }
+                };
+                tabEl.appendChild(spanName);
+                tabEl.appendChild(closeSpan);
+                tabEl.onclick = () => {
+                    activeTabId = tab.id;
+                    renderUI();
+                };
+                tabBarDiv.appendChild(tabEl);
+            });
+
+            const newBtn = document.createElement('button');
+            newBtn.innerText = '+ New Tab';
+            newBtn.className = 'new-tab-btn';
+            newBtn.onclick = () => showNewTabModal();
+            tabBarDiv.appendChild(newBtn);
+
+            const current = getCurrentTab();
+            if(!current) return;
+
+            if(current.type === 'text') {
+                editorPane.innerHTML = `
+                    <div class="text-editor-area">
+                        <div class="text-header">📝 TEXT MODE · autosave</div>
+                        <textarea class="text-editor" id="plainTextArea" placeholder="Write something..."></textarea>
+                    </div>
+                `;
+                const ta = document.getElementById('plainTextArea');
+                if(ta) {
+                    ta.value = current.textContent;
+                    ta.oninput = (e) => updateCurrentTabText(e.target.value);
+                }
+            }
+            else if(current.type === 'whiteboard') {
+                editorPane.innerHTML = `
+                    <div class="whiteboard-area">
+                        <div class="board-toolbar">
+                            <button class="tool-btn" data-tool="brush">🖌️ Brush</button>
+                            <button class="tool-btn" data-tool="eraser">🧽 Eraser</button>
+                            <input type="color" id="wb-color" value="#000000">
+                            <input type="range" id="wb-size" min="1" max="30" value="3" style="width:80px;">
+                            <button id="clear-wb" class="tool-btn">🗑️ Clear</button>
+                            <button id="export-wb" class="tool-btn">📸 Export</button>
+                        </div>
+                        <div class="canvas-wrapper">
+                            <canvas id="whiteboardCanvas"></canvas>
+                        </div>
+                    </div>
+                `;
+                const canvasEl = document.getElementById('whiteboardCanvas');
+                if(canvasEl) loadWhiteboardCanvas(current, canvasEl);
+
+                const colorPick = document.getElementById('wb-color');
+                const sizeSlider = document.getElementById('wb-size');
+                const clearBtn = document.getElementById('clear-wb');
+                const exportBtn = document.getElementById('export-wb');
+                if(colorPick) colorPick.onchange = (e) => { strokeColor = e.target.value; };
+                if(sizeSlider) sizeSlider.oninput = (e) => { brushSize = parseInt(e.target.value); };
+                if(clearBtn) clearBtn.onclick = () => clearWhiteboard();
+                if(exportBtn) exportBtn.onclick = () => exportWhiteboard();
+                setDrawingTool(activeTool);
+                const brushBtn = document.querySelector('[data-tool="brush"]');
+                const eraserBtn = document.querySelector('[data-tool="eraser"]');
+                if(brushBtn) brushBtn.onclick = () => setDrawingTool('brush');
+                if(eraserBtn) eraserBtn.onclick = () => setDrawingTool('eraser');
+            }
+            else if(current.type === 'html') {
+                editorPane.innerHTML = `
+                    <div class="html-area">
+                        <div class="html-editor-row">
+                            <div class="html-code-panel">
+                                <div class="text-header">🌐 HTML EDITOR</div>
+                                <textarea class="html-textarea" id="htmlCodeArea" placeholder="Write HTML/CSS/JS..."></textarea>
+                                <button id="runNewTabBtn" class="run-btn" style="margin-top:10px;">▶ Run in New Tab</button>
+                            </div>
+                            <div class="html-preview-panel">
+                                <div class="text-header">⚡ LIVE PREVIEW</div>
+                                <iframe class="preview-frame" id="preview-${current.id}" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                const codeArea = document.getElementById('htmlCodeArea');
+                if(codeArea) {
+                    codeArea.value = current.textContent;
+                    codeArea.oninput = (e) => {
+                        current.textContent = e.target.value;
+                        persistState();
+                        refreshHtmlPreview(current.id);
+                    };
+                }
+                refreshHtmlPreview(current.id);
+                const runBtn = document.getElementById('runNewTabBtn');
+                if(runBtn) runBtn.onclick = () => runHtmlInNewTab(current.id);
+            }
+            updateChatButton();
+        }
+
+        function showNewTabModal() {
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'modal-overlay';
+            let selectedType = 'text';
+            modalDiv.innerHTML = `
+                <div class="modal">
+                    <h3>✨ Create New Tab</h3>
+                    <div class="type-option">
+                        <div class="type-card" data-type="text">📄 Text</div>
+                        <div class="type-card" data-type="html">🌐 HTML</div>
+                        <div class="type-card" data-type="whiteboard">🎨 Whiteboard</div>
+                    </div>
+                    <button id="confirmCreate">Create Tab</button>
+                </div>
+            `;
+            document.body.appendChild(modalDiv);
+            const cards = modalDiv.querySelectorAll('.type-card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    cards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedType = card.getAttribute('data-type');
+                });
+                if(card.getAttribute('data-type') === 'text') card.classList.add('selected');
+            });
+            const confirmBtn = modalDiv.querySelector('#confirmCreate');
+            confirmBtn.onclick = () => {
+                const newTab = createTab(selectedType, `${selectedType === 'text' ? 'Note' : selectedType === 'html' ? 'Webpage' : 'Sketch'}`);
+                tabs.push(newTab);
+                activeTabId = newTab.id;
+                persistState();
+                renderUI();
+                modalDiv.remove();
+            };
+            modalDiv.addEventListener('click', (e) => { if(e.target === modalDiv) modalDiv.remove(); });
+        }
+
+        window.addEventListener('beforeunload', () => persistState());
+        loadState();
+        renderUI();
+    })();
+</script>
+</body>
+</html>
