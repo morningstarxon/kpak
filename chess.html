@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Kpak Chess</title>
+    <style>
+        @font-face {
+            font-family: 'Alice RA';
+            src: url('https://fonts.gstatic.com/ea/alice/v13/Alice-Regular.woff2') format('woff2');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f7f5ef;
+            font-family: 'Alice RA', 'Nunito', 'Quicksand', 'Segoe UI', serif;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap');
+
+        .game-container {
+            width: 1400px;
+            max-width: 98vw;
+            background: #ffffff;
+            border: 2px solid #d4af37;
+            border-radius: 28px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #fffcf5;
+            border-bottom: 1px solid #e9dfb0;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #b8860b;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: 1px solid #d4af37;
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #b37b2e;
+            font-family: inherit;
+        }
+
+        .mode-btn.active {
+            background: #d4af37;
+            color: white;
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 1px solid #d4af37;
+            border-radius: 30px;
+            padding: 6px 18px;
+            cursor: pointer;
+            color: #b37b2e;
+            font-family: inherit;
+        }
+
+        .reset-btn:hover, .mode-btn:hover {
+            background: #d4af37;
+            color: white;
+        }
+
+        .main-panel {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 0;
+        }
+
+        .board-section {
+            flex: 2;
+            min-width: 320px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        canvas {
+            width: 100%;
+            max-width: 560px;
+            height: auto;
+            background: #f0d9b5;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .right-panel {
+            flex: 1;
+            min-width: 280px;
+            background: #fffef8;
+            border-left: 2px solid #ebdfa6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stats-section {
+            padding: 16px;
+            border-bottom: 1px solid #eadfa0;
+            background: #fefcf4;
+        }
+
+        .capture-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .capture-white, .capture-black {
+            background: #fef7e0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #e5d68a;
+        }
+
+        .moves-section {
+            padding: 16px;
+            border-bottom: 1px solid #eadfa0;
+        }
+
+        .moves-title {
+            font-weight: 600;
+            color: #b8860b;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .moves-list {
+            height: 180px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            background: #fefcf4;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid #eadfa0;
+        }
+
+        .move-item {
+            padding: 3px;
+            border-bottom: 1px solid #f0e5c0;
+            font-family: monospace;
+        }
+
+        .p2p-section {
+            padding: 16px;
+            border-bottom: 1px solid #eadfa0;
+        }
+
+        .code-display {
+            background: #fef7e0;
+            padding: 10px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            font-family: monospace;
+            margin: 8px 0;
+        }
+
+        .code-input {
+            display: flex;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .code-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #d4af37;
+            border-radius: 24px;
+            font-family: monospace;
+            text-transform: uppercase;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .p2p-btn {
+            background: #d4af37;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 24px;
+            color: white;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .chat-section {
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            height: 150px;
+            overflow-y: auto;
+            background: #fefcf4;
+            border: 1px solid #eadfa0;
+            border-radius: 12px;
+            padding: 8px;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #d4af37;
+            border-radius: 24px;
+            font-family: inherit;
+            font-size: 12px;
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: #b68b30;
+            padding: 8px 16px;
+            background: #fef7e0;
+            border-top: 1px solid #eadfa0;
+            text-align: center;
+        }
+
+        button {
+            background: none;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="header">
+        <span class="title">Kpak Chess</span>
+        <div class="mode-buttons">
+            <button id="vsComputerBtn" class="mode-btn active">vs Computer</button>
+            <button id="cvcBtn" class="mode-btn">CvC</button>
+            <button id="vsP2PBtn" class="mode-btn">P2P</button>
+        </div>
+        <button id="resetGameBtn" class="reset-btn">New Game</button>
+    </div>
+
+    <div class="main-panel">
+        <div class="board-section">
+            <canvas id="chessCanvas" width="560" height="560"></canvas>
+        </div>
+        <div class="right-panel">
+            <div class="stats-section">
+                <div class="capture-stats">
+                    <div class="capture-white" id="whiteCaptureStat">White captures: 0</div>
+                    <div class="capture-black" id="blackCaptureStat">Black captures: 0</div>
+                </div>
+            </div>
+            <div class="moves-section">
+                <div class="moves-title">Move History</div>
+                <div class="moves-list" id="movesList"></div>
+            </div>
+            <div id="p2pPanel" class="p2p-section" style="display: none;">
+                <div class="moves-title">P2P Connection</div>
+                <div id="codeDisplayArea"></div>
+                <div class="code-input">
+                    <input type="text" id="joinCodeInput" placeholder="5-letter code" maxlength="5">
+                    <button id="connectBtn" class="p2p-btn">Connect</button>
+                </div>
+                <div id="p2pStatus" style="font-size: 11px; color: #7a6300; margin-top: 6px;"></div>
+            </div>
+            <div class="chat-section">
+                <div class="moves-title">Game Log</div>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-area" id="chatInputArea">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Message...">
+                    <button id="sendChatBtn" class="p2p-btn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="status-text" id="statusText">White's turn</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>
+    let board = Array(64).fill(null);
+    let turn = 'w';
+    let gameOver = false;
+    let mode = 'computer';
+    let selectedSquare = null;
+    let legalMoves = [];
+    let moveHistory = [];
+    let whiteCaptures = [];
+    let blackCaptures = [];
+    let cvcInterval = null;
+    let cvcRunning = false;
+    
+    let peer = null;
+    let conn = null;
+    let p2pIsHost = false;
+    let p2pMyColor = 'w';
+    let p2pReady = false;
+
+    const initialBoard = [
+        'r','n','b','q','k','b','n','r',
+        'p','p','p','p','p','p','p','p',
+        null,null,null,null,null,null,null,null,
+        null,null,null,null,null,null,null,null,
+        null,null,null,null,null,null,null,null,
+        null,null,null,null,null,null,null,null,
+        'P','P','P','P','P','P','P','P',
+        'R','N','B','Q','K','B','N','R'
+    ];
+
+    const pieceMap = {
+        'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟',
+        'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙'
+    };
+
+    function resetBoard() {
+        for (let i = 0; i < 64; i++) board[i] = initialBoard[i];
+        turn = 'w';
+        gameOver = false;
+        selectedSquare = null;
+        legalMoves = [];
+        moveHistory = [];
+        whiteCaptures = [];
+        blackCaptures = [];
+        updateCaptureStats();
+        updateMovesList();
+        drawBoard();
+        updateStatus();
+        addGameLog("Game started");
+        
+        if (cvcInterval) { clearInterval(cvcInterval); cvcInterval = null; }
+        cvcRunning = false;
+        
+        if (mode === 'computer' && turn === 'b') setTimeout(() => computerMove(), 300);
+        if (mode === 'cvc') startCvC();
+    }
+
+    function addGameLog(msg) {
+        const container = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.innerText = msg;
+        div.style.color = '#7a6300';
+        div.style.fontSize = '11px';
+        div.style.marginBottom = '3px';
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        while (container.children.length > 100) container.removeChild(container.children[0]);
+    }
+
+    function isFriendly(piece1, piece2) {
+        if (!piece1 || !piece2) return false;
+        return (piece1 === piece1.toUpperCase()) === (piece2 === piece2.toUpperCase());
+    }
+
+    function isValidSquare(r, c) {
+        return r >= 0 && r < 8 && c >= 0 && c < 8;
+    }
+
+    function getPieceMoves(square, boardState, color) {
+        const piece = boardState[square];
+        if (!piece) return [];
+        const pieceType = piece.toLowerCase();
+        const isWhite = piece === piece.toUpperCase();
+        if ((isWhite && color !== 'w') || (!isWhite && color !== 'b')) return [];
+        
+        const row = Math.floor(square / 8);
+        const col = square % 8;
+        const moves = [];
+        
+        function tryAdd(r, c) {
+            if (!isValidSquare(r, c)) return false;
+            const target = boardState[r * 8 + c];
+            if (!target) { moves.push(r * 8 + c); return true; }
+            if (!isFriendly(piece, target)) { moves.push(r * 8 + c); return false; }
+            return false;
+        }
+        
+        if (pieceType === 'p') {
+            const dir = isWhite ? -1 : 1;
+            const startRow = isWhite ? 6 : 1;
+            const oneStepRow = row + dir;
+            if (isValidSquare(oneStepRow, col) && !boardState[oneStepRow * 8 + col]) {
+                moves.push(oneStepRow * 8 + col);
+                if (row === startRow) {
+                    const twoStepRow = row + 2 * dir;
+                    if (!boardState[twoStepRow * 8 + col]) moves.push(twoStepRow * 8 + col);
+                }
+            }
+            for (const dc of [-1, 1]) {
+                const nr = row + dir;
+                const nc = col + dc;
+                if (isValidSquare(nr, nc)) {
+                    const target = boardState[nr * 8 + nc];
+                    if (target && !isFriendly(piece, target)) moves.push(nr * 8 + nc);
+                }
+            }
+        } else if (pieceType === 'n') {
+            const offsets = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+            for (const [dr, dc] of offsets) tryAdd(row + dr, col + dc);
+        } else if (pieceType === 'k') {
+            for (let dr = -1; dr <= 1; dr++)
+                for (let dc = -1; dc <= 1; dc++)
+                    if (dr !== 0 || dc !== 0) tryAdd(row + dr, col + dc);
+        } else if (pieceType === 'q') {
+            for (let dr = -1; dr <= 1; dr++)
+                for (let dc = -1; dc <= 1; dc++)
+                    if (dr !== 0 || dc !== 0) {
+                        for (let i = 1; i <= 7; i++) {
+                            if (!tryAdd(row + dr * i, col + dc * i)) break;
+                        }
+                    }
+        } else if (pieceType === 'r') {
+            for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+                for (let i = 1; i <= 7; i++) {
+                    if (!tryAdd(row + dr * i, col + dc * i)) break;
+                }
+            }
+        } else if (pieceType === 'b') {
+            for (const [dr, dc] of [[-1,-1],[-1,1],[1,-1],[1,1]]) {
+                for (let i = 1; i <= 7; i++) {
+                    if (!tryAdd(row + dr * i, col + dc * i)) break;
+                }
+            }
+        }
+        
+        return moves;
+    }
+    
+    function isSquareAttacked(square, color, boardState) {
+        for (let i = 0; i < 64; i++) {
+            const piece = boardState[i];
+            if (piece) {
+                const pieceIsWhite = piece === piece.toUpperCase();
+                if ((color === 'w' && !pieceIsWhite) || (color === 'b' && pieceIsWhite)) {
+                    const moves = getPieceMoves(i, boardState, pieceIsWhite ? 'w' : 'b');
+                    if (moves.includes(square)) return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    function isMoveLegal(from, to, boardState, color) {
+        const piece = boardState[from];
+        if (!piece) return false;
+        const pieceIsWhite = piece === piece.toUpperCase();
+        if ((color === 'w' && !pieceIsWhite) || (color === 'b' && pieceIsWhite)) return false;
+        
+        const target = boardState[to];
+        if (target && isFriendly(piece, target)) return false;
+        
+        const moves = getPieceMoves(from, boardState, color);
+        if (!moves.includes(to)) return false;
+        
+        const testBoard = [...boardState];
+        testBoard[to] = testBoard[from];
+        testBoard[from] = null;
+        
+        const kingPos = testBoard.findIndex(p => p === (color === 'w' ? 'K' : 'k'));
+        if (kingPos === -1) return false;
+        return !isSquareAttacked(kingPos, color, testBoard);
+    }
+    
+    function getAllLegalMoves(color) {
+        const moves = [];
+        for (let i = 0; i < 64; i++) {
+            const piece = board[i];
+            if (piece && ((piece === piece.toUpperCase()) === (color === 'w'))) {
+                const pieceMoves = getPieceMoves(i, board, color);
+                for (const to of pieceMoves) {
+                    if (isMoveLegal(i, to, board, color)) {
+                        moves.push({ from: i, to });
+                    }
+                }
+            }
+        }
+        return moves;
+    }
+    
+    function executeMove(from, to) {
+        if (!isMoveLegal(from, to, board, turn)) return false;
+        
+        const piece = board[from];
+        const captured = board[to];
+        
+        if (captured) {
+            if (turn === 'w') whiteCaptures.push(captured);
+            else blackCaptures.push(captured);
+            addGameLog(`${turn === 'w' ? 'White' : 'Black'} captured ${pieceMap[captured] || captured}`);
+            updateCaptureStats();
+        }
+        
+        const fromRow = Math.floor(from / 8);
+        const fromCol = from % 8;
+        const toRow = Math.floor(to / 8);
+        const toCol = to % 8;
+        const notation = `${piece} ${String.fromCharCode(97+fromCol)}${8-fromRow} → ${String.fromCharCode(97+toCol)}${8-toRow}`;
+        moveHistory.push({ from, to, piece, notation });
+        
+        board[to] = board[from];
+        board[from] = null;
+        turn = turn === 'w' ? 'b' : 'w';
+        
+        updateMovesList();
+        drawBoard();
+        updateStatus();
+        
+        const moves = getAllLegalMoves(turn);
+        if (moves.length === 0) {
+            gameOver = true;
+            const winner = turn === 'w' ? 'Black' : 'White';
+            addGameLog(`Checkmate! ${winner} wins!`);
+            updateStatus();
+            drawBoard();
+            if (cvcInterval) { clearInterval(cvcInterval); cvcInterval = null; }
+            cvcRunning = false;
+        }
+        
+        if (mode === 'computer' && turn === 'b' && !gameOver) {
+            setTimeout(() => computerMove(), 200);
+        }
+        
+        if (mode === 'cvc' && !gameOver && !cvcRunning) {
+            scheduleCvCMove();
+        }
+        
+        if (mode === 'p2p' && conn && p2pReady && !gameOver && turn === (p2pMyColor === 'w' ? 'b' : 'w')) {
+            conn.send({ type: 'move', from, to });
+        }
+        
+        return true;
+    }
+    
+    const pieceValues = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+    
+    function evaluateBoardState(boardState) {
+        let score = 0;
+        for (let i = 0; i < 64; i++) {
+            const p = boardState[i];
+            if (p) {
+                const val = pieceValues[p.toLowerCase()];
+                if (p === p.toUpperCase()) score += val;
+                else score -= val;
+            }
+        }
+        return score;
+    }
+    
+    function getBestMoveForColor(color, depth = 2) {
+        const moves = getAllLegalMoves(color);
+        if (moves.length === 0) return null;
+        
+        let bestScore = color === 'w' ? -Infinity : Infinity;
+        let bestMove = moves[0];
+        
+        for (const m of moves) {
+            const testBoard = [...board];
+            testBoard[m.to] = testBoard[m.from];
+            testBoard[m.from] = null;
+            
+            let score = 0;
+            for (let i = 0; i < 64; i++) {
+                const p = testBoard[i];
+                if (p) {
+                    const val = pieceValues[p.toLowerCase()];
+                    if (p === p.toUpperCase()) score += val;
+                    else score -= val;
+                }
+            }
+            
+            if (color === 'w') {
+                if (score > bestScore) { bestScore = score; bestMove = m; }
+            } else {
+                if (score < bestScore) { bestScore = score; bestMove = m; }
+            }
+        }
+        return bestMove;
+    }
+    
+    function computerMove() {
+        if (mode !== 'computer' && mode !== 'cvc') return;
+        if (gameOver) return;
+        if (turn !== 'b') return;
+        
+        const move = getBestMoveForColor('b', 2);
+        if (move) {
+            executeMove(move.from, move.to);
+        } else if (getAllLegalMoves('b').length === 0) {
+            gameOver = true;
+            addGameLog("Black has no moves! White wins!");
+            updateStatus();
+            drawBoard();
+        }
+    }
+    
+    function computerMoveWhite() {
+        if (mode !== 'cvc') return;
+        if (gameOver) return;
+        if (turn !== 'w') return;
+        
+        const move = getBestMoveForColor('w', 2);
+        if (move) {
+            executeMove(move.from, move.to);
+        } else if (getAllLegalMoves('w').length === 0) {
+            gameOver = true;
+            addGameLog("White has no moves! Black wins!");
+            updateStatus();
+            drawBoard();
+        }
+    }
+    
+    function scheduleCvCMove() {
+        if (cvcRunning || gameOver || mode !== 'cvc') return;
+        cvcRunning = true;
+        
+        setTimeout(() => {
+            if (!gameOver && mode === 'cvc') {
+                if (turn === 'w') {
+                    computerMoveWhite();
+                } else if (turn === 'b') {
+                    computerMove();
+                }
+            }
+            cvcRunning = false;
+            
+            if (!gameOver && mode === 'cvc' && getAllLegalMoves(turn).length > 0) {
+                scheduleCvCMove();
+            }
+        }, 400);
+    }
+    
+    function startCvC() {
+        if (cvcInterval) clearInterval(cvcInterval);
+        cvcRunning = false;
+        setTimeout(() => {
+            if (mode === 'cvc' && !gameOver) {
+                scheduleCvCMove();
+            }
+        }, 500);
+    }
+    
+    function updateCaptureStats() {
+        document.getElementById('whiteCaptureStat').innerHTML = `White captures: ${whiteCaptures.length} ${whiteCaptures.map(p => pieceMap[p] || p).join(' ')}`;
+        document.getElementById('blackCaptureStat').innerHTML = `Black captures: ${blackCaptures.length} ${blackCaptures.map(p => pieceMap[p] || p).join(' ')}`;
+    }
+    
+    const canvas = document.getElementById('chessCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    function drawBoard() {
+        const size = canvas.width / 8;
+        const kingPos = board.findIndex(p => p === (turn === 'w' ? 'K' : 'k'));
+        const isKingInCheck = kingPos !== -1 && isSquareAttacked(kingPos, turn, board);
+        
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const isLight = (i + j) % 2 === 0;
+                ctx.fillStyle = isLight ? '#f0d9b5' : '#b58863';
+                ctx.fillRect(j * size, i * size, size, size);
+                
+                const square = i * 8 + j;
+                const piece = board[square];
+                
+                if (selectedSquare === square) {
+                    ctx.fillStyle = 'rgba(212, 175, 55, 0.5)';
+                    ctx.fillRect(j * size, i * size, size, size);
+                }
+                
+                if (legalMoves.includes(square) && selectedSquare !== null) {
+                    const targetPiece = board[square];
+                    if (targetPiece && !isFriendly(board[selectedSquare], targetPiece)) {
+                        ctx.fillStyle = 'rgba(0, 200, 0, 0.5)';
+                    } else {
+                        ctx.fillStyle = 'rgba(100, 200, 100, 0.3)';
+                    }
+                    ctx.fillRect(j * size, i * size, size, size);
+                }
+                
+                if (piece) {
+                    ctx.font = `${size * 0.7}px 'Segoe UI', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif`;
+                    ctx.fillStyle = piece === piece.toUpperCase() ? '#2c2c2c' : '#f5f5f5';
+                    ctx.fillText(pieceMap[piece], j * size + size * 0.2, i * size + size * 0.8);
+                }
+                
+                if (isKingInCheck && square === kingPos) {
+                    ctx.beginPath();
+                    ctx.moveTo(j * size + size/2, i * size + size/2 - 12);
+                    ctx.lineTo(j * size + size/2 - 8, i * size + size/2 + 6);
+                    ctx.lineTo(j * size + size/2, i * size + size/2 + 2);
+                    ctx.lineTo(j * size + size/2 + 8, i * size + size/2 + 6);
+                    ctx.fillStyle = 'rgba(255, 50, 50, 0.9)';
+                    ctx.fill();
+                }
+            }
+        }
+    }
+    
+    canvas.addEventListener('click', (e) => {
+        if (gameOver) return;
+        if (mode === 'p2p' && turn !== p2pMyColor) {
+            addGameLog("Not your turn");
+            return;
+        }
+        if (mode === 'cvc') return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const scale = canvas.width / rect.width;
+        const x = (e.clientX - rect.left) * scale;
+        const y = (e.clientY - rect.top) * scale;
+        const col = Math.floor(x / (canvas.width / 8));
+        const row = Math.floor(y / (canvas.height / 8));
+        const square = row * 8 + col;
+        
+        if (selectedSquare === null) {
+            const piece = board[square];
+            if (piece && ((piece === piece.toUpperCase()) === (turn === 'w'))) {
+                selectedSquare = square;
+                legalMoves = getPieceMoves(square, board, turn).filter(to => isMoveLegal(square, to, board, turn));
+                drawBoard();
+            }
+        } else {
+            if (legalMoves.includes(square)) {
+                executeMove(selectedSquare, square);
+            }
+            selectedSquare = null;
+            legalMoves = [];
+            drawBoard();
+        }
+    });
+    
+    function updateMovesList() {
+        const container = document.getElementById('movesList');
+        const recent = moveHistory.slice(-20);
+        container.innerHTML = recent.map((m, idx) => 
+            `<div class="move-item">${moveHistory.length - recent.length + idx + 1}. ${m.notation}</div>`
+        ).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    function updateStatus() {
+        const status = document.getElementById('statusText');
+        if (gameOver) {
+            const winner = turn === 'w' ? 'Black' : 'White';
+            status.innerText = winner + ' wins!';
+        } else {
+            status.innerText = (turn === 'w' ? 'White' : 'Black') + "'s turn";
+        }
+    }
+    
+    function initPeer() {
+        peer = new Peer();
+        peer.on('open', id => {});
+        peer.on('connection', c => {
+            conn = c;
+            p2pIsHost = true;
+            p2pMyColor = 'w';
+            p2pReady = true;
+            setupP2PConnection();
+        });
+    }
+    
+    function setupP2PConnection() {
+        if (!conn) return;
+        conn.on('data', (data) => {
+            if (data.type === 'move') {
+                if (isMoveLegal(data.from, data.to, board, turn)) {
+                    executeMove(data.from, data.to);
+                }
+            } else if (data.type === 'chat') {
+                addGameLog("Opponent: " + data.msg);
+            } else if (data.type === 'reset') {
+                resetBoard();
+                addGameLog("Opponent reset the game");
+            }
+        });
+        conn.on('close', () => {
+            addGameLog("Disconnected");
+            p2pReady = false;
+        });
+        document.getElementById('p2pStatus').innerText = 'Connected!';
+        if (p2pIsHost) {
+            const code = peer.id.slice(-5).toUpperCase();
+            document.getElementById('codeDisplayArea').innerHTML = `<div class="code-display">${code}</div><div>Share this code</div>`;
+        }
+        addGameLog("P2P connected! You are " + (p2pMyColor === 'w' ? "White" : "Black"));
+        resetBoard();
+    }
+    
+    function connectToPeer(code) {
+        if (!peer) initPeer();
+        setTimeout(() => {
+            conn = peer.connect(code);
+            conn.on('open', () => {
+                p2pIsHost = false;
+                p2pMyColor = 'b';
+                p2pReady = true;
+                setupP2PConnection();
+            });
+            conn.on('error', () => {
+                document.getElementById('p2pStatus').innerText = 'Connection failed';
+            });
+        }, 500);
+    }
+    
+    function sendChat(msg) {
+        if (conn && p2pReady) conn.send({ type: 'chat', msg });
+        addGameLog("You: " + msg);
+    }
+    
+    document.getElementById('vsComputerBtn').onclick = () => {
+        mode = 'computer';
+        document.getElementById('vsComputerBtn').classList.add('active');
+        document.getElementById('cvcBtn').classList.remove('active');
+        document.getElementById('vsP2PBtn').classList.remove('active');
+        document.getElementById('p2pPanel').style.display = 'none';
+        document.getElementById('chatInputArea').style.display = 'flex';
+        if (cvcInterval) { clearInterval(cvcInterval); cvcInterval = null; }
+        cvcRunning = false;
+        if (conn) conn.close();
+        p2pReady = false;
+        resetBoard();
+    };
+    
+    document.getElementById('cvcBtn').onclick = () => {
+        mode = 'cvc';
+        document.getElementById('cvcBtn').classList.add('active');
+        document.getElementById('vsComputerBtn').classList.remove('active');
+        document.getElementById('vsP2PBtn').classList.remove('active');
+        document.getElementById('p2pPanel').style.display = 'none';
+        document.getElementById('chatInputArea').style.display = 'none';
+        if (conn) conn.close();
+        resetBoard();
+    };
+    
+    document.getElementById('vsP2PBtn').onclick = () => {
+        mode = 'p2p';
+        document.getElementById('vsP2PBtn').classList.add('active');
+        document.getElementById('vsComputerBtn').classList.remove('active');
+        document.getElementById('cvcBtn').classList.remove('active');
+        document.getElementById('p2pPanel').style.display = 'block';
+        document.getElementById('chatInputArea').style.display = 'flex';
+        if (cvcInterval) { clearInterval(cvcInterval); cvcInterval = null; }
+        cvcRunning = false;
+        if (!peer) initPeer();
+        resetBoard();
+    };
+    
+    document.getElementById('resetGameBtn').onclick = () => {
+        if (mode === 'p2p' && conn && p2pReady) conn.send({ type: 'reset' });
+        resetBoard();
+    };
+    
+    document.getElementById('connectBtn').onclick = () => {
+        const code = document.getElementById('joinCodeInput').value.toUpperCase();
+        if (code.length === 5) connectToPeer(code);
+        else alert("Enter 5-letter code");
+    };
+    
+    document.getElementById('sendChatBtn').onclick = () => {
+        const inp = document.getElementById('chatInput');
+        if (inp.value.trim()) {
+            if (mode === 'p2p') sendChat(inp.value);
+            else addGameLog("You: " + inp.value);
+            inp.value = '';
+        }
+    };
+    
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const inp = document.getElementById('chatInput');
+            if (inp.value.trim()) {
+                if (mode === 'p2p') sendChat(inp.value);
+                else addGameLog("You: " + inp.value);
+                inp.value = '';
+            }
+        }
+    });
+    
+    initPeer();
+    resetBoard();
+</script>
+</body>
+</html>
