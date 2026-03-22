@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kpak: OK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&family=Special+Elite&display=swap');
+        
+        :root { 
+            --gold: #d4af37; 
+            --dark-gold: #aa8a2e;
+            --bg: #fafafa; 
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg); 
+            color: #1a1a1a;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+        }
+
+        .gold-serif { font-family: 'Playfair Display', serif; }
+        .signature { font-family: 'Special Elite', cursive; }
+
+        .nav-card {
+            background: white;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(212, 175, 55, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa8a2e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #eee;
+            border-bottom-color: var(--gold);
+            border-radius: 50%;
+            display: inline-block;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
+        
+        .divider {
+            height: 1px;
+            width: 60px;
+            background: var(--gold);
+            margin: 1.5rem auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-8">
+
+    <header class="text-center mb-16 mt-16">
+        <h1 class="gold-serif text-7xl mb-2 gold-gradient-text">Kpak</h1>
+        <div class="divider"></div>
+        <p class="text-gray-400 font-light uppercase tracking-[0.4em] text-xs">Find Pages</p>
+    </header>
+
+    <main id="app" class="w-full max-w-5xl flex flex-col items-center">
+        <!-- Loading -->
+        <div id="loading" class="flex flex-col items-center space-y-6">
+            <span class="loader"></span>
+            <p class="text-gray-400 tracking-widest text-sm uppercase">Synchronizing...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="hidden text-center p-12 bg-white border border-red-100 rounded-3xl shadow-sm">
+            <p class="text-red-800 font-semibold mb-2">Service Interrupted</p>
+            <p class="text-gray-500 text-sm">The page index is currently unreachable.</p>
+        </div>
+
+        <!-- Grid -->
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full hidden">
+            <!-- Dynamic Content -->
+        </div>
+    </main>
+
+    <footer class="mt-auto pt-24 pb-12 text-center">
+        <p class="signature text-xl text-gray-300 transition-colors hover:text-[#d4af37] cursor-default">Morgenstern</p>
+    </footer>
+
+    <script>
+        const SOURCE_URL = 'https://morningstarxon.github.io/kpak/pages.json';
+
+        async function init() {
+            const grid = document.getElementById('grid');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+
+            try {
+                const response = await fetch(SOURCE_URL);
+                if (!response.ok) throw new Error('Network error');
+                
+                const data = await response.json();
+                
+                data.pages.forEach(page => {
+                    const btn = document.createElement('a');
+                    btn.href = page.url;
+                    btn.className = 'nav-card p-8 rounded-[2rem] flex flex-col items-center text-center group';
+                    btn.innerHTML = `
+                        <span class="gold-serif text-2xl text-gray-800 group-hover:text-gold transition-colors">${page.name}</span>
+                        <div class="w-8 h-[1px] bg-gray-100 my-4 group-hover:w-16 group-hover:bg-gold transition-all"></div>
+                        <span class="text-gray-400 text-sm leading-relaxed font-light">${page.desc}</span>
+                        <div class="mt-6 text-[10px] text-gold font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                            Explore Link
+                        </div>
+                    `;
+                    grid.appendChild(btn);
+                });
+
+                loading.classList.add('hidden');
+                grid.classList.remove('hidden');
+
+            } catch (err) {
+                loading.classList.add('hidden');
+                error.classList.remove('hidden');
+                console.error('System Failure:', err);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
