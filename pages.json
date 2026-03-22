@@ -1,0 +1,25 @@
+{
+"pages": [
+{
+"name": "Chess",
+"url": "/chess.html",
+"desc": "Play chess against your computer engine (not AI, so it works offline)"
+},
+{
+"name": "Kpak Editor",
+"url": "/editor.html",
+"desc": "Text and HTML editor as well as whiteboard"
+},
+{
+"name": "Tic Tac Toe",
+"url": "/tictactoe.html",
+"desc": "Play tic tac toe against your own computer offline"
+},
+
+{
+"name": "Kpak Chat App",
+"url": "https://msentimental-kpak.hf.space",
+"desc": "Chat with accounts and... other features"
+}
+]
+}
